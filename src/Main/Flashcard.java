@@ -26,14 +26,26 @@ public class Flashcard {
 
     // setters
     public void setMainKey(String mainKey) {
+        if (mainKey == null || mainKey.isBlank()) // making sure mainKey has information
+        {
+            throw new IllegalArgumentException("Flashcard cannot contain empty information.");
+        }
         this.mainKey = mainKey;
     }
 
     public void setDefinition(String definition) {
+        if (definition == null || definition.isBlank()) // making sure definition has information
+        {
+            throw new IllegalArgumentException("Flashcard cannot contain empty information.");
+        }
         this.definition = definition;
     }
 
     public void setSubject(String subject) {
+        if (subject == null || subject.isBlank()) // making sure subject has information
+        {
+            throw new IllegalArgumentException("Flashcard cannot contain empty information.");
+        }
         this.subject = subject;
     }
 }

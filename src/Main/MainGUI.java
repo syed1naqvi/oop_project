@@ -55,6 +55,14 @@ public class MainGUI extends JFrame {
         centerPanel.add(Box.createVerticalStrut(20));
         centerPanel.add(studyBtn);
 
+        subBtn.addActionListener(e -> {
+        // open a new window
+        new SubjectsGUI();
+
+        setVisible(false);    // hide
+        // dispose();           // close this MainGUI
+        });
+
         bottomPanel = new JPanel(new GridBagLayout());
         bottomPanel.add(centerPanel);
         bottomPanel.setBorder(new EmptyBorder(-200,0,0,0));
