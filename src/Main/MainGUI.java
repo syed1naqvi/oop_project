@@ -1,3 +1,10 @@
+/*
+ * disclosure: assistance of AI and internet were used in some swing and GUI parts due to using elements we did not encounter 
+ * before or use in class. core object oriented programming functionality was written ourselves. for anything that we
+ * used the assistance of AI or internet in, we made sure to fully understand all the code and libraries, along with rewriting
+ * the code with what we learnt.
+ */
+
 package Main;
 
 import java.awt.*;
@@ -59,7 +66,7 @@ public class MainGUI extends JFrame {
         // open a new window
         new SubjectsGUI();
 
-        setVisible(false);    // hide
+        // setVisible(false);   // hide
         // dispose();           // close this MainGUI
         });
 
