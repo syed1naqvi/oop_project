@@ -63,11 +63,55 @@ public class MainGUI extends JFrame {
         centerPanel.add(studyBtn);
 
         subBtn.addActionListener(e -> {
-        // open a new window
-        new SubjectsGUI();
+            // open a new window
+            new SubjectsGUI();
+            // setVisible(false);   // hide
+            // dispose();           // close this MainGUI
+        });
 
-        // setVisible(false);   // hide
-        // dispose();           // close this MainGUI
+        studyBtn.addActionListener(e -> {
+            // Check if there are any subjects available
+            if (SubjectManager.getModel().isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "No subjects available. Please create subjects and add flashcards first.",
+                    "No Subjects",
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            // Check if there are enough flashcards for quiz mode
+            int totalFlashcards = 0;
+            for (int i = 0; i < SubjectManager.getModel().size(); i++) {
+                totalFlashcards += SubjectManager.getModel().getElementAt(i).getFlashcards().size();
+            }
+            
+            // Show study mode selection dialog
+            String[] options = {"Flashcard Study", "Multiple Choice Quiz", "Cancel"};
+            int choice = JOptionPane.showOptionDialog(this,
+                "Select study mode:",
+                "Study Mode Selection",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]);
+            
+            if (choice == 0) {
+                // Flashcard Study Mode - need to select a subject
+                showSubjectSelectionForStudy();
+            } else if (choice == 1) {
+                // Multiple Choice Quiz Mode
+                if (totalFlashcards < 4) {
+                    JOptionPane.showMessageDialog(this,
+                        "You need at least 4 flashcards total to start a quiz.\n" +
+                        "Current total: " + totalFlashcards + " flashcards",
+                        "Not Enough Flashcards",
+                        JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                new QuizModeGUI();
+            }
+            // choice == 2 or closed dialog: do nothing
         });
 
         bottomPanel = new JPanel(new GridBagLayout());
@@ -79,5 +123,54 @@ public class MainGUI extends JFrame {
         setMinimumSize(new Dimension(420, 500));
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+    
+    private void showSubjectSelectionForStudy() {
+        // Create a list of subjects for selection
+        DefaultListModel<Subject> model = SubjectManager.getModel();
+        JList<Subject> subjectList = new JList<>(model);
+        subjectList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        // Show with flashcard counts
+        subjectList.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                    int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Subject) {
+                    Subject s = (Subject) value;
+                    setText(s.getName() + " (" + s.getFlashcards().size() + " flashcards)");
+                }
+                return this;
+            }
+        });
+        
+        JScrollPane scrollPane = new JScrollPane(subjectList);
+        scrollPane.setPreferredSize(new Dimension(300, 200));
+        
+        int result = JOptionPane.showConfirmDialog(this,
+            scrollPane,
+            "Select a Subject to Study",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE);
+        
+        if (result == JOptionPane.OK_OPTION) {
+            Subject selected = subjectList.getSelectedValue();
+            if (selected == null) {
+                JOptionPane.showMessageDialog(this,
+                    "Please select a subject to study.",
+                    "No Selection",
+                    JOptionPane.WARNING_MESSAGE);
+                showSubjectSelectionForStudy(); // Try again
+            } else if (selected.getFlashcards().isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "The selected subject has no flashcards.",
+                    "No Flashcards",
+                    JOptionPane.WARNING_MESSAGE);
+                showSubjectSelectionForStudy(); // Try again
+            } else {
+                new StudyGUI(selected.getFlashcards());
+            }
+        }
     }
 }
