@@ -1,8 +1,8 @@
 /*
- * disclosure: assistance of AI and internet were used in some swing and GUI parts due to using elements we did not encounter 
- * before or use in class. core object oriented programming functionality was written ourselves. for anything that we
- * used the assistance of AI or internet in, we made sure to fully understand all the code and libraries, along with rewriting
- * the code with what we learnt.
+ * disclosure: assistance of AI and internet were used, as allowed by the professor, in some swing and GUI parts due to using
+ * elements we did not encounter before or use in class. core object oriented programming functionality was written ourselves. 
+ * for anything that we used the assistance of AI or internet in, we made sure to fully understand all the code and libraries, 
+ * along with rewriting the code with what we learnt.
  */
 
 
@@ -21,6 +21,9 @@ public final class SubjectManager {
     {
         return MODEL;
     }
+
+    public static void saveToDisk() { DataStorage.save(MODEL); }
+    public static void loadFromDisk() { DataStorage.loadInto(MODEL); }
 
     // add subject
     public static Subject addSubject(String name) 
@@ -41,12 +44,15 @@ public final class SubjectManager {
 
         Subject created = new Subject(key);
         MODEL.addElement(created); // JList updates automatically
+        SubjectManager.saveToDisk();
         return created;
     }
 
     // remove subject
     public static boolean removeSubject(Subject s) 
     {
-        return MODEL.removeElement(s); // JList updates automatically
+        MODEL.removeElement(s); // JList updates automatically
+        SubjectManager.saveToDisk();
+        return true;
     }
 }
