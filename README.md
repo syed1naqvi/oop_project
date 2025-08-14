@@ -1,18 +1,41 @@
-## Getting Started
+## Flashcard Study system
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+A Java-based desktop application that makes studying simple, organized, and a little more fun. Built wiht Object-Oriented Programming principles and Java Swing, it lets you create, organize, adn study flashcards across multiple subjects -- all from one clean, interactive interface.
 
-## Folder Structure
+## Features
 
-The workspace contains two folders by default, where:
+The Flashcard Application allows for
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+- Subject-Based Organization - Keeping flashcards neatly grouped by subject
+- Multiple Study Modes –
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
+  - Standard Review – Flip through flashcards like you would in real life.
 
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
+  - Shuffle Mode – Mix it up with randomized flashcard order for better retention.
 
-## Dependency Management
+  - Multiple-Choice Quiz – Test yourself with instant feedback.
 
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+- Progress Tracking – See your score, track your progress, and know where you need to focus.
+
+- Full CRUD Support – Create, view, update, and delete both subjects and flashcards.
+
+- Automatic Saving & Backups – Never lose your study materials — data is saved and restored between sessions.
+
+## Tech Stack
+- Language: Java
+- GUI: Java Swing
+- Architecture: OOP
+- Data Storage: Java serialization (local storage only)
+
+
+
+## How it Works
+1. Create a Subject - Give it a name (must be unique)
+2. Add Flashcards - Each one has a term and definition
+3. Choose a Study Mode - Review, shuffle, or quiz yourself
+4. Track Your Progress - View score, see your strengths and weaknesses, and keep learning
+
+### Requirements
+- Java 8+
+- No external libraries needed - pure Java/Swing
+- Local storage only (single-user system)
