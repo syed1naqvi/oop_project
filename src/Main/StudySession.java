@@ -1,3 +1,10 @@
+/*
+ * disclosure: assistance of AI and internet were used in some swing and GUI parts due to using elements we did not encounter 
+ * before or use in class. core object oriented programming functionality was written ourselves. for anything that we
+ * used the assistance of AI or internet in, we made sure to fully understand all the code and libraries, along with rewriting
+ * the code with what we learnt.
+ */
+
 package Main;
 
 import java.util.ArrayList;
@@ -6,13 +13,13 @@ import java.util.Objects;
 import java.util.Random;
 
 /**
- * Controls traversal + shuffle for a deck of Flashcards.
- * - Toggle with setShuffleEnabled(true/false)
- * - next()/previous() to navigate
- * - progress() returns 0..1
+  Controls traversal + shuffle for a deck of Flashcards.
+  - Toggle with setShuffleEnabled(true/false)
+  - next()/previous() to navigate
+  - progress() returns 0..1
  */
 public class StudySession {
-    private final List<Flashcard> allCards; // original insertion order
+    private final List<Flashcard> allCards; // original order inserted
     private final List<Flashcard> order;    // current traversal order
     private int index = 0;
     private boolean shuffleEnabled = false;
@@ -30,18 +37,19 @@ public class StudySession {
 
     public StudySession(List<Flashcard> cards, long seed, ShuffleStrategy shuffler) {
         Objects.requireNonNull(cards, "cards");
-        this.allCards = new ArrayList<>(cards);  // copy so we own the list
+        this.allCards = new ArrayList<>(cards);   // get a copy
         this.order    = new ArrayList<>(allCards);
         this.rng      = new Random(seed);
         this.shuffler = Objects.requireNonNull(shuffler, "shuffler");
     }
 
-    /** Enable/disable shuffle. Disabling restores original order. */
+    // enable/disable shuffle. Disabling restores original order added to the subject
     public void setShuffleEnabled(boolean enabled) {
         if (this.shuffleEnabled == enabled) return;
         this.shuffleEnabled = enabled;
-        if (enabled) reshuffle();
-        else {
+        if (enabled) {
+            reshuffle();
+        } else {
             order.clear();
             order.addAll(allCards);
             index = 0;
@@ -50,7 +58,7 @@ public class StudySession {
 
     public boolean isShuffleEnabled() { return shuffleEnabled; }
 
-    /** Shuffle again using the current cards. */
+    // shuffle again using the current cards
     public void reshuffle() {
         order.clear();
         order.addAll(allCards);
@@ -81,28 +89,12 @@ public class StudySession {
         return null;
     }
 
-    public void reset() { index = 0; }
+    // Create a progress bar for the flash card (i.e 1/4 or 2/6)
+    // to see how far along you are through the flash cards
+    // Total cards in the current traversal order. 
+    public int size() { return order.size(); }
 
-    /** In [0,1]; 1 means you're on the last card. */
-    public double progress() {
-        if (order.isEmpty()) return 0.0;
-        return (index + 1) / (double) order.size();
-    }
+    //Position of the current card
+    public int position() { return order.isEmpty() ? -1 : index; }
 
-    // Optional helpers if you allow edits during study:
-    public void addCard(Flashcard c) {
-        allCards.add(Objects.requireNonNull(c));
-        if (shuffleEnabled) reshuffle(); else order.add(c);
-    }
-    public boolean removeCard(Flashcard c) {
-        boolean removed = allCards.remove(c);
-        if (removed) {
-            int inOrder = order.indexOf(c);
-            if (inOrder >= 0) {
-                order.remove(inOrder);
-                if (index > 0 && inOrder <= index) index--;
-            }
-        }
-        return removed;
-    }
 }

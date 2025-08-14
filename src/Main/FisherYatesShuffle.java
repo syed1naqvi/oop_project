@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+/*Disclaimer, AI helped us pick the most appropriate shuffle algorithm*/
+
 public class FisherYatesShuffle implements ShuffleStrategy {
     @Override
     public void shuffle(List<Flashcard> list, Random rng) {

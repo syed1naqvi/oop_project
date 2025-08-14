@@ -1,3 +1,12 @@
+/*
+ * disclosure: assistance of AI and internet were used in some swing and GUI parts due to using elements we did not encounter 
+ * before or use in class. core object oriented programming functionality was written ourselves. for anything that we
+ * used the assistance of AI or internet in, we made sure to fully understand all the code and libraries, along with rewriting
+ * the code with what we learnt.
+ */
+
+
+
 package Main;
 
 import java.awt.*;
@@ -7,11 +16,17 @@ import javax.swing.*;
 public class StudyGUI extends JFrame {
     private final StudySession session;
 
-    private final JLabel   keyLabel   = new JLabel("", SwingConstants.CENTER);
-    private final JTextArea defArea   = new JTextArea();
-    private final JLabel   progressLb = new JLabel("", SwingConstants.CENTER);
+    // Label for the term at the top of of the card
+    private final JLabel termLabel   = new JLabel("", SwingConstants.CENTER);
+    private final JTextArea defArea  = new JTextArea();
+    // footer progress (ie "Card 2 / 7")
+    private final JLabel footerLabel = new JLabel("", SwingConstants.LEFT);
+
+    // Controls
     private final JToggleButton shuffleToggle = new JToggleButton("Shuffle");
     private final JButton reshuffleBtn = new JButton("Reshuffle");
+    private final JButton prevBtn = new JButton("Previous");
+    private final JButton nextBtn = new JButton("Next");
 
     public StudyGUI(List<Flashcard> cards) {
         super("Study");
@@ -20,40 +35,43 @@ public class StudyGUI extends JFrame {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(12,12));
 
-        keyLabel.setFont(keyLabel.getFont().deriveFont(Font.BOLD, 22f));
-        add(keyLabel, BorderLayout.NORTH);
+        // header term specs
+        termLabel.setFont(termLabel.getFont().deriveFont(Font.BOLD, 24f));
+        termLabel.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        add(termLabel, BorderLayout.NORTH);
 
+        // middle of card specs
+        defArea.setEditable(false);
         defArea.setLineWrap(true);
         defArea.setWrapStyleWord(true);
-        defArea.setEditable(false);
         defArea.setBorder(BorderFactory.createEmptyBorder(8,12,8,12));
         add(new JScrollPane(defArea), BorderLayout.CENTER);
 
-        JPanel bottom = new JPanel(new BorderLayout());
-        JPanel nav = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 12));
-        JButton prev = new JButton("Previous");
-        JButton next = new JButton("Next");
-        nav.add(prev);
-        nav.add(next);
+        // footer progress and buttons
+        JPanel south = new JPanel(new BorderLayout());
+        footerLabel.setBorder(BorderFactory.createEmptyBorder(8,12,8,12));
+        south.add(footerLabel, BorderLayout.WEST);
 
-        JPanel opts = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 12));
-        opts.add(shuffleToggle);
-        opts.add(reshuffleBtn);
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 12));
+        buttons.add(prevBtn);
+        buttons.add(nextBtn);
+        buttons.add(shuffleToggle);
+        buttons.add(reshuffleBtn);
+        south.add(buttons, BorderLayout.CENTER);
 
-        bottom.add(progressLb, BorderLayout.WEST);
-        bottom.add(nav,        BorderLayout.CENTER);
-        bottom.add(opts,       BorderLayout.EAST);
-        add(bottom, BorderLayout.SOUTH);
+        add(south, BorderLayout.SOUTH);
 
-        // Actions
-        prev.addActionListener(e -> { session.previous(); refresh(); });
-        next.addActionListener(e -> { session.next(); refresh(); });
+        // go to previous card
+        prevBtn.addActionListener(e -> { session.previous(); refresh(); });
+        // go to next card
+        nextBtn.addActionListener(e -> { session.next(); refresh(); });
         shuffleToggle.addActionListener(e -> {
-            boolean enabled = shuffleToggle.isSelected();
-            session.setShuffleEnabled(enabled);
-            shuffleToggle.setText(enabled ? "Unshuffle" : "Shuffle");
+            boolean on = shuffleToggle.isSelected();
+            session.setShuffleEnabled(on);
+            shuffleToggle.setText(on ? "Unshuffle" : "Shuffle");
             refresh();
         });
+        // initial render
         reshuffleBtn.addActionListener(e -> { session.reshuffle(); refresh(); });
 
         setSize(560, 440);
@@ -66,29 +84,32 @@ public class StudyGUI extends JFrame {
     private void refresh() {
         Flashcard c = session.current();
         if (c == null) {
-            keyLabel.setText("No cards in this subject.");
+            termLabel.setText("No cards in this subject.");
             defArea.setText("");
-            progressLb.setText("");
+            footerLabel.setText("");
+            prevBtn.setEnabled(false);
+            nextBtn.setEnabled(false);
+            shuffleToggle.setEnabled(false);
+            reshuffleBtn.setEnabled(false);
             return;
         }
-        keyLabel.setText(c.getMainKey());
-        defArea.setText(c.getDefinition());
-        progressLb.setText(String.format("Card %d / %d",
-                Math.max(1, (int)Math.round(session.progress() * sessionSize())),
-                sessionSize()));
-    }
 
-    private int sessionSize() { // avoid double rounding issues
-        int count = 0;
-        for (;;) {
-            Flashcard cur = session.current();
-            if (cur == null) break;
-            count = Math.max(count, 1); // present
-            // we can estimate from progress if needed, but not required
-            break;
-        }
-        // We don't expose size() directly from StudySession; progress label can also be omitted.
-        // If you want exact size, add a size() getter in StudySession and call it here.
-        return  /* better: add getter in StudySession */ 1; // see note below
+        // show current card
+        termLabel.setText(c.getMainKey());
+        defArea.setText(c.getDefinition());
+
+        // footer 
+        int total = session.size();
+        int pos1  = session.position() + 1;      // 1-based for display
+        footerLabel.setText(String.format("Card %d / %d", pos1, total));
+
+        // only allow if not at the first card
+        prevBtn.setEnabled(session.position() > 0);
+        // only allow if not at the final card
+        nextBtn.setEnabled(session.position() < total - 1);
+
+        // shuffle is allowed only when there are cards
+        shuffleToggle.setEnabled(true);
+        reshuffleBtn.setEnabled(true);
     }
 }
