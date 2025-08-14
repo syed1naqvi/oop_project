@@ -5,51 +5,51 @@
  * along with rewriting the code with what we learnt.
  */
 
-
-
 package Main;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.util.List;
 import javax.swing.*;
 
 public class StudyGUI extends JFrame {
+    private final SubjectService service;
     private final StudySession session;
 
-    // Label for the term at the top of of the card
+    // UI
     private final JLabel termLabel   = new JLabel("", SwingConstants.CENTER);
     private final JTextArea defArea  = new JTextArea();
-    // footer progress (ie "Card 2 / 7")
     private final JLabel footerLabel = new JLabel("", SwingConstants.LEFT);
 
-    // Controls
     private final JToggleButton shuffleToggle = new JToggleButton("Shuffle");
     private final JButton reshuffleBtn = new JButton("Reshuffle");
     private final JButton prevBtn = new JButton("Previous");
     private final JButton nextBtn = new JButton("Next");
 
-    public StudyGUI(List<Flashcard> cards) {
+    public StudyGUI(SubjectService service, List<Flashcard> cards) {
         super("Study");
+        this.service = service;
+
         this.session = new StudySession(cards);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setLayout(new BorderLayout(12,12));
+        setLayout(new BorderLayout(12, 12));
 
-        // header term specs
-        termLabel.setFont(termLabel.getFont().deriveFont(Font.BOLD, 24f));
+        // header (term)
+        termLabel.setFont(termLabel.getFont().deriveFont(java.awt.Font.BOLD, 24f));
         termLabel.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
         add(termLabel, BorderLayout.NORTH);
 
-        // middle of card specs
+        // center (definition)
         defArea.setEditable(false);
         defArea.setLineWrap(true);
         defArea.setWrapStyleWord(true);
-        defArea.setBorder(BorderFactory.createEmptyBorder(8,12,8,12));
+        defArea.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
         add(new JScrollPane(defArea), BorderLayout.CENTER);
 
-        // footer progress and buttons
+        // footer (progress + buttons)
         JPanel south = new JPanel(new BorderLayout());
-        footerLabel.setBorder(BorderFactory.createEmptyBorder(8,12,8,12));
+        footerLabel.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
         south.add(footerLabel, BorderLayout.WEST);
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 12));
@@ -61,17 +61,16 @@ public class StudyGUI extends JFrame {
 
         add(south, BorderLayout.SOUTH);
 
-        // go to previous card
+        // actions
         prevBtn.addActionListener(e -> { session.previous(); refresh(); });
-        // go to next card
         nextBtn.addActionListener(e -> { session.next(); refresh(); });
         shuffleToggle.addActionListener(e -> {
             boolean on = shuffleToggle.isSelected();
             session.setShuffleEnabled(on);
             shuffleToggle.setText(on ? "Unshuffle" : "Shuffle");
             refresh();
+            service.save();
         });
-        // initial render
         reshuffleBtn.addActionListener(e -> { session.reshuffle(); refresh(); });
 
         setSize(560, 440);
@@ -94,21 +93,16 @@ public class StudyGUI extends JFrame {
             return;
         }
 
-        // show current card
         termLabel.setText(c.getMainKey());
         defArea.setText(c.getDefinition());
 
-        // footer 
         int total = session.size();
-        int pos1  = session.position() + 1;      // 1-based for display
+        int pos1  = session.position() + 1; // 1-based for display
         footerLabel.setText(String.format("Card %d / %d", pos1, total));
 
-        // only allow if not at the first card
         prevBtn.setEnabled(session.position() > 0);
-        // only allow if not at the final card
         nextBtn.setEnabled(session.position() < total - 1);
 
-        // shuffle is allowed only when there are cards
         shuffleToggle.setEnabled(true);
         reshuffleBtn.setEnabled(true);
     }

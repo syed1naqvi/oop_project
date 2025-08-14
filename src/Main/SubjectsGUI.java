@@ -11,112 +11,77 @@ import java.awt.*;
 import javax.swing.*;
 
 public class SubjectsGUI extends JFrame {
-
-    private JList<Subject> subjectsList;
+    private final SubjectService service;
+    private final JList<Subject> subjectsList;
     private JButton addBtn, removeBtn, backBtn, openBtn, studyBtn;
-    private JLabel title;
-    private JPanel btnBar, topRow, bottomRow;
 
-public SubjectsGUI() {
-    setTitle("Subjects");
-    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    setLayout(new BorderLayout(12,12));
+    public SubjectsGUI(SubjectService service) {
+        this.service = service;
 
-    title = new JLabel("Subjects", SwingConstants.CENTER);
-    title.setFont(title.getFont().deriveFont(Font.BOLD, 18f));
-    add(title, BorderLayout.NORTH);
+        setTitle("Subjects");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout(12,12));
 
-    subjectsList = new JList<>(SubjectManager.getModel());
-    subjectsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    add(new JScrollPane(subjectsList), BorderLayout.CENTER);
+        JLabel title = new JLabel("Subjects", SwingConstants.CENTER);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 18f));
+        add(title, BorderLayout.NORTH);
 
-    btnBar = new JPanel();
-    btnBar.setLayout(new BoxLayout(btnBar, BoxLayout.Y_AXIS));
-    topRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
-    bottomRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
-    btnBar.add(topRow);
-    btnBar.add(bottomRow);
-    add(btnBar, BorderLayout.SOUTH);
+        subjectsList = new JList<>(service.getModel());
+        subjectsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        add(new JScrollPane(subjectsList), BorderLayout.CENTER);
 
-    // --- CREATE BUTTONS (fields, no shadowing) ---
-    addBtn    = new JButton("Add");
-    removeBtn = new JButton("Remove");
-    openBtn   = new JButton("Open");
-    studyBtn  = new JButton("Study");   // <-- created before listeners
-    backBtn   = new JButton("Back");
+        JPanel btnBar = new JPanel();
+        btnBar.setLayout(new BoxLayout(btnBar, BoxLayout.Y_AXIS));
+        JPanel topRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
+        JPanel bottomRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
+        btnBar.add(topRow);
+        btnBar.add(bottomRow);
+        add(btnBar, BorderLayout.SOUTH);
 
-    Font bigFont = addBtn.getFont().deriveFont(Font.PLAIN, 18f);
-    for (JButton b : new JButton[]{addBtn, removeBtn, openBtn, studyBtn, backBtn}) {
-        b.setFont(bigFont);
-        b.setPreferredSize(new Dimension(120, 40));
-        b.setMaximumSize(new Dimension(120, 40));
+        addBtn    = new JButton("Add");
+        removeBtn = new JButton("Remove");
+        openBtn   = new JButton("Open");
+        studyBtn  = new JButton("Study");
+        backBtn   = new JButton("Back");
+
+        Font big = addBtn.getFont().deriveFont(Font.PLAIN, 18f);
+        for (JButton b : new JButton[]{addBtn, removeBtn, openBtn, studyBtn, backBtn}) {
+            b.setFont(big);
+            b.setPreferredSize(new Dimension(120, 40));
+        }
+
+        topRow.add(addBtn);
+        topRow.add(removeBtn);
+        bottomRow.add(openBtn);
+        bottomRow.add(studyBtn);
+        bottomRow.add(backBtn);
+
+        addBtn.addActionListener(e -> onAdd());
+        removeBtn.addActionListener(e -> onRemove());
+        backBtn.addActionListener(e -> dispose());
+        openBtn.addActionListener(e -> onOpen());
+        studyBtn.addActionListener(e -> onStudy());
+
+        setSize(520, 420);
+        setLocationRelativeTo(null);
+        setVisible(true);
     }
 
-    topRow.add(addBtn);
-    topRow.add(removeBtn);
-    bottomRow.add(openBtn);
-    bottomRow.add(studyBtn);            // <-- add to layout
-    bottomRow.add(backBtn);
-
-    // --- LISTENERS (attach AFTER creation) ---
-    addBtn.addActionListener(e -> onAdd());
-    removeBtn.addActionListener(e -> onRemove());
-    backBtn.addActionListener(e -> dispose());
-
-    openBtn.addActionListener(e -> {
-        Subject selected = subjectsList.getSelectedValue();
-        if (selected == null) {
-            JOptionPane.showMessageDialog(this, "Please select a subject to open.",
-                    "No subject selected", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        new FlashcardsGUI(selected);
-    });
-
-    studyBtn.addActionListener(e -> {
-        Subject selected = subjectsList.getSelectedValue();
-        if (selected == null) {
-            JOptionPane.showMessageDialog(this, "Please select a subject to study.",
-                    "No subject selected", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        new StudyGUI(selected.getFlashcards());
-    });
-
-    // nice UX: enable Study only when a subject is selected
-    studyBtn.setEnabled(false);
-    subjectsList.addListSelectionListener(e ->
-        studyBtn.setEnabled(!subjectsList.isSelectionEmpty())
-    );
-
-    setSize(420, 500);
-    setLocationRelativeTo(null);
-    setVisible(true);
-}
-
-
-    // add subject
     private void onAdd() {
         String name = JOptionPane.showInputDialog(this, "New subject name:");
-        if (name == null) return; // user canceled
+        if (name == null) return;
         try {
-            Subject created = SubjectManager.addSubject(name);
-            subjectsList.setSelectedValue(created, true); // highlight new one
+            Subject created = service.addSubject(name);
+            subjectsList.setSelectedValue(created, true);
+            service.save(); // optional immediate save
         } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(
-                this,
-                ex.getMessage(),
-                "Invalid Name",
-                JOptionPane.WARNING_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Invalid Name", JOptionPane.WARNING_MESSAGE);
         }
     }
 
-
-    // remove subject
     private void onRemove() {
         Subject selected = subjectsList.getSelectedValue();
-        if (selected == null) return; // nothing selected
+        if (selected == null) return;
         int confirm = JOptionPane.showConfirmDialog(
                 this,
                 "Remove subject \"" + selected.getName() + "\"?",
@@ -124,7 +89,30 @@ public SubjectsGUI() {
                 JOptionPane.OK_CANCEL_OPTION
         );
         if (confirm == JOptionPane.OK_OPTION) {
-            SubjectManager.removeSubject(selected);
+            service.removeSubject(selected);
+            service.save(); // optional immediate save
         }
+    }
+
+    private void onOpen() {
+        Subject selected = subjectsList.getSelectedValue();
+        if (selected == null) {
+            JOptionPane.showMessageDialog(this, "Select a subject first.");
+            return;
+        }
+        new FlashcardsGUI(service, selected).setVisible(true);
+    }
+
+    private void onStudy() {
+        Subject selected = subjectsList.getSelectedValue();
+        if (selected == null) {
+            JOptionPane.showMessageDialog(this, "Select a subject first.");
+            return;
+        }
+        if (selected.getFlashcards().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "This subject has no flashcards.");
+            return;
+        }
+        new StudyGUI(service, selected.getFlashcards()).setVisible(true);
     }
 }
