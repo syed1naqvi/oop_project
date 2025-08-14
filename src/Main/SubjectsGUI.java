@@ -1,8 +1,8 @@
 /*
- * disclosure: assistance of AI and internet were used in some swing and GUI parts due to using elements we did not encounter 
- * before or use in class. core object oriented programming functionality was written ourselves. for anything that we
- * used the assistance of AI or internet in, we made sure to fully understand all the code and libraries, along with rewriting
- * the code with what we learnt.
+ * disclosure: assistance of AI and internet were used, as allowed by the professor, in some swing and GUI parts due to using
+ * elements we did not encounter before or use in class. core object oriented programming functionality was written ourselves. 
+ * for anything that we used the assistance of AI or internet in, we made sure to fully understand all the code and libraries, 
+ * along with rewriting the code with what we learnt.
  */
 
 package Main;
@@ -22,7 +22,7 @@ public SubjectsGUI() {
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     setLayout(new BorderLayout(12,12));
 
-    JLabel title = new JLabel("Subjects", SwingConstants.CENTER);
+    title = new JLabel("Subjects", SwingConstants.CENTER);
     title.setFont(title.getFont().deriveFont(Font.BOLD, 18f));
     add(title, BorderLayout.NORTH);
 
@@ -30,10 +30,10 @@ public SubjectsGUI() {
     subjectsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     add(new JScrollPane(subjectsList), BorderLayout.CENTER);
 
-    JPanel btnBar = new JPanel();
+    btnBar = new JPanel();
     btnBar.setLayout(new BoxLayout(btnBar, BoxLayout.Y_AXIS));
-    JPanel topRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
-    JPanel bottomRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
+    topRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
+    bottomRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
     btnBar.add(topRow);
     btnBar.add(bottomRow);
     add(btnBar, BorderLayout.SOUTH);

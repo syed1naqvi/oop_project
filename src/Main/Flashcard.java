@@ -1,6 +1,7 @@
 package Main;
 
-public class Flashcard {
+public class Flashcard implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     private String mainKey;
     private String definition;
     private String subject;
