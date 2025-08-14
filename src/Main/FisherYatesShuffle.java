@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-/*Disclaimer, AI helped us pick the most appropriate shuffle algorithm*/
+/* Disclaimer: AI helped us pick the most appropriate shuffle algorithm */
 
 public class FisherYatesShuffle implements ShuffleStrategy {
     @Override

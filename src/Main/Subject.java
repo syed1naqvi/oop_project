@@ -11,30 +11,31 @@ import java.util.*;
 
 public class Subject implements java.io.Serializable {
     private static final long serialVersionUID = 1L;
+
     private final String name;
-    private final java.util.List<Flashcard> flashcards = new ArrayList<>();
+    private final List<Flashcard> flashcards = new ArrayList<>();
 
     public Subject(String name) {
-        if (name == null || name.isBlank()) // making sure subject has a name
-        {
-            throw new IllegalArgumentException("Subject name cannot be empty.");
-        }
-        this.name = name.trim();
+        this.name = Objects.requireNonNull(name);
     }
 
-    public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
     public List<Flashcard> getFlashcards() {
-        return Collections.unmodifiableList(flashcards); // disclosure: recommended by AI to use unmodifiableList to prevent data tampering
+        return flashcards; // kept mutable for GUI editing convenience
     }
 
     public void addFlashcard(Flashcard card) {
-        flashcards.add(Objects.requireNonNull(card)); // prevent having any nulls in list to deal with later on
+        flashcards.add(Objects.requireNonNull(card));
     }
 
     public boolean removeFlashcard(Flashcard card) {
         return flashcards.remove(card);
     }
 
-    @Override public String toString() { return name; }
+    @Override public String toString() {
+        return name;
+    }
 }

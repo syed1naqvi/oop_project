@@ -9,194 +9,151 @@ package Main;
 
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 
 public class FlashcardsGUI extends JFrame {
-
+    private final SubjectService service;
     private final Subject subject;
-    private DefaultListModel<Flashcard> MODEL;
+
+    private DefaultListModel<Flashcard> model;
     private JList<Flashcard> flashcardList;
     private JButton addBtn, editBtn, removeBtn, backBtn;
-    private JLabel title;
-    private JPanel btnBar, topRow, bottomRow;
 
-    public FlashcardsGUI(Subject subject) 
-    {
-        setTitle("Flashcards — " + subject.getName());
+    public FlashcardsGUI(SubjectService service, Subject subject) {
+        super("Flashcards — " + subject.getName());
+        this.service = service;
         this.subject = subject;
 
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // completely exit program
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(12, 12));
 
-        title = new JLabel("Subject: " + subject.getName(), SwingConstants.CENTER);
+        JLabel title = new JLabel("Subject: " + subject.getName(), SwingConstants.CENTER);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 18f));
         title.setBorder(BorderFactory.createEmptyBorder(40, 0, 0, 0));
         add(title, BorderLayout.NORTH);
 
-        // list model + populate from subject
-        MODEL = new DefaultListModel<>();
-        for (Flashcard fc : subject.getFlashcards()) {
-            MODEL.addElement(fc);
-        }
+        // Build model from subject cards
+        model = new DefaultListModel<>();
+        for (Flashcard c : subject.getFlashcards()) model.addElement(c);
 
-        
-        /* 
-         * flashcards list with custom renderer - this is needed so that the user can see both the word and the definition within the list,
-         * which is why it is much more complicated than the subjectsGUI -> needed AI and online assistance to figure out how to display all 
-         * the elements on the JList as i have no experience with JList
-         */
-
-        flashcardList = new JList<>(MODEL);
+        flashcardList = new JList<>(model);
         flashcardList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        flashcardList.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
-            JLabel lbl = new JLabel(value.getMainKey() + " — " + value.getDefinition());
-            lbl.setOpaque(true);
-            if (isSelected) {
-                lbl.setBackground(list.getSelectionBackground());
-                lbl.setForeground(list.getSelectionForeground());
-            } else {
-                lbl.setBackground(list.getBackground());
-                lbl.setForeground(list.getForeground());
-            }
-            lbl.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
-            return lbl;
-        });
+        flashcardList.setVisibleRowCount(10);
         add(new JScrollPane(flashcardList), BorderLayout.CENTER);
 
-        btnBar = new JPanel();
+        JPanel btnBar = new JPanel();
         btnBar.setLayout(new BoxLayout(btnBar, BoxLayout.Y_AXIS));
-
-        addBtn = new JButton("Add");
-        removeBtn = new JButton("Remove");
-        editBtn = new JButton("Edit");
-        backBtn = new JButton("Back");
-
-        Font bigFont = addBtn.getFont().deriveFont(Font.PLAIN, 18f);
-        addBtn.setFont(bigFont);
-        removeBtn.setFont(bigFont);
-        editBtn.setFont(bigFont);
-        backBtn.setFont(bigFont);
-
-        Dimension buttonSize = new Dimension(120, 40);
-        addBtn.setPreferredSize(buttonSize);
-        addBtn.setMaximumSize(buttonSize);
-        removeBtn.setPreferredSize(buttonSize);
-        removeBtn.setMaximumSize(buttonSize);
-        editBtn.setPreferredSize(buttonSize);
-        editBtn.setMaximumSize(buttonSize);
-        backBtn.setPreferredSize(buttonSize);
-        backBtn.setMaximumSize(buttonSize);
-
-        btnBar.setBorder(new EmptyBorder(0,0,50,0));
-
-        topRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
-        topRow.add(addBtn);
-        topRow.add(removeBtn);
-
-        bottomRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
-        bottomRow.add(editBtn);
-        bottomRow.add(backBtn);
-
+        JPanel topRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
+        JPanel bottomRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 5));
         btnBar.add(topRow);
         btnBar.add(bottomRow);
-
         add(btnBar, BorderLayout.SOUTH);
+
+        addBtn    = new JButton("Add");
+        editBtn   = new JButton("Edit");
+        removeBtn = new JButton("Remove");
+        backBtn   = new JButton("Back");
+
+        Font big = addBtn.getFont().deriveFont(Font.PLAIN, 18f);
+        for (JButton b : new JButton[]{addBtn, editBtn, removeBtn, backBtn}) {
+            b.setFont(big);
+            b.setPreferredSize(new Dimension(120, 40));
+        }
+
+        topRow.add(addBtn);
+        topRow.add(editBtn);
+        bottomRow.add(removeBtn);
+        bottomRow.add(backBtn);
 
         addBtn.addActionListener(e -> onAdd());
         editBtn.addActionListener(e -> onEdit());
         removeBtn.addActionListener(e -> onRemove());
         backBtn.addActionListener(e -> dispose());
 
-        setSize(420, 500);
+        setSize(600, 480);
         setLocationRelativeTo(null);
         setVisible(true);
     }
 
-    /* 
-     * disclosure: assistance of AI was used in these functions for inserting and formatting forms 
-     * which were not ever used in class before
-     */
+    private void onAdd() {
+        JTextField keyField = new JTextField();
+        JTextArea defArea = new JTextArea(5, 20);
+        defArea.setLineWrap(true);
+        defArea.setWrapStyleWord(true);
+        JTextField subjField = new JTextField(subject.getName());
+        subjField.setEditable(false);
 
-    private void onAdd() 
-    {
-        JTextField termField = new JTextField(20);
-        JTextField defField = new JTextField(20);
+        JPanel panel = new JPanel(new BorderLayout(8,8));
+        JPanel top = new JPanel(new GridLayout(0,1,6,6));
+        top.add(new JLabel("Term:"));
+        top.add(keyField);
+        top.add(new JLabel("Definition:"));
+        panel.add(top, BorderLayout.NORTH);
+        panel.add(new JScrollPane(defArea), BorderLayout.CENTER);
+        JPanel bottom = new JPanel(new GridLayout(0,1,6,6));
+        bottom.add(new JLabel("Subject:"));
+        bottom.add(subjField);
+        panel.add(bottom, BorderLayout.SOUTH);
 
-        JPanel form = new JPanel(new GridLayout(0, 1, 6, 6));
-        form.add(new JLabel("Main term:"));
-        form.add(termField);
-        form.add(new JLabel("Definition:"));
-        form.add(defField);
+        int res = JOptionPane.showConfirmDialog(this, panel, "Add Flashcard",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (res != JOptionPane.OK_OPTION) return;
 
-        int result = JOptionPane.showConfirmDialog(
-                this, form, "Add Flashcard", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
-        );
-        if (result != JOptionPane.OK_OPTION) return;
-
-        String term = termField.getText().trim();
-        String def = defField.getText().trim();
-        if (term.isEmpty() || def.isEmpty()) 
-        {
-            JOptionPane.showMessageDialog(this, "Both fields are required.", "Missing data",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
+        String key = keyField.getText();
+        String def = defArea.getText();
+        try {
+            Flashcard c = new Flashcard(key, def, subject.getName());
+            subject.addFlashcard(c);
+            model.addElement(c);
+            service.save(); // optional
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Invalid", JOptionPane.WARNING_MESSAGE);
         }
-
-        Flashcard card = new Flashcard(term, def, subject.getName());
-        subject.addFlashcard(card);
-        MODEL.addElement(card);
-        flashcardList.setSelectedValue(card, true);
     }
 
-    // almost copy + paste of onAdd()
-    private void onEdit() 
-    {
-        Flashcard selected = flashcardList.getSelectedValue();
-        if (selected == null) return;
+    private void onEdit() {
+        Flashcard sel = flashcardList.getSelectedValue();
+        if (sel == null) return;
 
-        JTextField termField = new JTextField(selected.getMainKey(), 20);
-        JTextField defField = new JTextField(selected.getDefinition(), 20);
+        JTextField keyField = new JTextField(sel.getMainKey());
+        JTextArea defArea = new JTextArea(sel.getDefinition(), 5, 20);
+        defArea.setLineWrap(true);
+        defArea.setWrapStyleWord(true);
 
-        JPanel form = new JPanel(new GridLayout(0, 1, 6, 6));
-        form.add(new JLabel("Main term:"));
-        form.add(termField);
-        form.add(new JLabel("Definition:"));
-        form.add(defField);
+        JPanel panel = new JPanel(new BorderLayout(8,8));
+        JPanel top = new JPanel(new GridLayout(0,1,6,6));
+        top.add(new JLabel("Term:"));
+        top.add(keyField);
+        top.add(new JLabel("Definition:"));
+        panel.add(top, BorderLayout.NORTH);
+        panel.add(new JScrollPane(defArea), BorderLayout.CENTER);
 
-        int result = JOptionPane.showConfirmDialog(
-                this, form, "Edit Flashcard", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
-        );
-        if (result != JOptionPane.OK_OPTION) return;
+        int res = JOptionPane.showConfirmDialog(this, panel, "Edit Flashcard",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (res != JOptionPane.OK_OPTION) return;
 
-        String term = termField.getText().trim();
-        String def = defField.getText().trim();
-        if (term.isEmpty() || def.isEmpty()) 
-        {
-            JOptionPane.showMessageDialog(this, "Both fields are required.", "Missing data",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
+        try {
+            sel.setMainKey(keyField.getText());
+            sel.setDefinition(defArea.getText());
+            // refresh cell
+            int idx = flashcardList.getSelectedIndex();
+            model.set(idx, sel);
+            service.save(); // optional
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Invalid", JOptionPane.WARNING_MESSAGE);
         }
-
-        selected.setMainKey(term);
-        selected.setDefinition(def);
-        flashcardList.repaint();
     }
 
-    private void onRemove() 
-    {
-        Flashcard selected = flashcardList.getSelectedValue();
-        if (selected == null) return;
+    private void onRemove() {
+        Flashcard sel = flashcardList.getSelectedValue();
+        if (sel == null) return;
 
-        int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "Remove this flashcard?\n" + selected.getMainKey(),
-                "Confirm",
-                JOptionPane.OK_CANCEL_OPTION
-        );
-        if (confirm == JOptionPane.OK_OPTION) 
-        {
-            subject.removeFlashcard(selected);
-            MODEL.removeElement(selected);
-        }
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Remove this flashcard?\n\n" + sel.getMainKey(),
+                "Confirm", JOptionPane.OK_CANCEL_OPTION);
+        if (confirm != JOptionPane.OK_OPTION) return;
+
+        subject.removeFlashcard(sel);
+        model.removeElement(sel);
+        service.save(); // optional
     }
 }
